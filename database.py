@@ -20,10 +20,10 @@ def configurar_banco():
     conn.commit()
     conn.close()
 
-def obter_historico_conversas():
+def obter_historico_conversas(limite=15):
     conn = sqlite3.connect('cache.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT pergunta, resposta FROM historico_conversas ORDER BY id")
+    cursor.execute("SELECT pergunta, resposta FROM historico_conversas ORDER BY id DESC LIMIT ?", (limite,))
     linhas = cursor.fetchall()
     conn.close()
     return [{"pergunta": linha[0], "resposta": linha[1]} for linha in linhas]
@@ -32,5 +32,7 @@ def salvar_entrada_historico(pergunta, resposta):
     conn = sqlite3.connect('cache.db')
     cursor = conn.cursor()
     cursor.execute("INSERT INTO historico_conversas (pergunta, resposta) VALUES (?, ?)", (pergunta, resposta))
+    conn.commit()
+    cursor.execute("DELETE FROM historico_conversas WHERE id NOT IN (SELECT id FROM historico_conversas ORDER BY id DESC LIMIT 15)")
     conn.commit()
     conn.close()
