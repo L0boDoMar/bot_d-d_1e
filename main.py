@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 import os
-from processar_pdf import *
-from processar_perguntas import *
-from database import *
+from indexador import indexar_arquivos
+from processar_perguntas import processar_consulta, atualizar_contexto
+from database import configurar_banco, obter_textos
 
 # Definir a variável de ambiente para evitar o erro de duplicação do OpenMP
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -13,25 +13,27 @@ load_dotenv()
 # Configurar banco de dados
 configurar_banco()
 
-# Caminho para o PDF
-caminho_pdf = "data/dungeons_and_dragons.pdf"
+# Caminho para a pasta de PDFs
+caminho_pasta = "data/"
 
-# Processar o PDF e extrair o texto
-texto = processar_pdf(caminho_pdf)
+# Indexar todos os PDFs na pasta
+indexar_arquivos(caminho_pasta)
 
 # Inicializar contexto
 contexto_atual = ""
 
 # Definir consultas e processá-las
 consultas = [
-    "qual é o atributo principal do mago?",
-    "quantos feitiços eles podem memorizar no inicio?",
-    "qual é oa atributo principal dos guerreiros?"
+    "quais são os dados de vida de um guerreiro?",
+    "em quais situações eles são úteis e podem ajudar o grupo?",
+    "quais são os dados de vida de um mago?"
 ]
 
 for consulta in consultas:
     contexto_atual = atualizar_contexto(contexto_atual, consulta)
-    resposta = processar_consulta(consulta, texto, contexto_atual)
+    textos = obter_textos()
+    resposta = processar_consulta(consulta, textos, contexto_atual)
     print("Pergunta:", consulta)
     print("Resposta:", resposta)
-   # print("Contexto Atual:", contexto_atual)
+    print("Contexto Atual:", contexto_atual)
+    print("\n")

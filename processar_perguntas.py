@@ -1,4 +1,6 @@
 import time
+import os
+import json
 from transformers import GPT2TokenizerFast
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -7,8 +9,6 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain_openai import ChatOpenAI
 from database import *
 from cache import *
-import os
-import json
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -27,7 +27,7 @@ def atualizar_contexto(contexto_atual, nova_consulta, limiar_similaridade=0.2):
         return nova_consulta
     return contexto_atual
 
-def processar_consulta(consulta, texto, contexto_atual):
+def processar_consulta(consulta, textos, contexto_atual):
     # Inicializar o tokenizador
     tokenizador = GPT2TokenizerFast.from_pretrained("gpt2")
 
@@ -42,7 +42,9 @@ def processar_consulta(consulta, texto, contexto_atual):
         length_function=contar_tokens,
     )
 
-    chunks = divisor_texto.create_documents([texto])
+    chunks = []
+    for texto in textos:
+        chunks.extend(divisor_texto.create_documents([texto]))
 
     if not chunks:
         raise ValueError("Os chunks de texto não foram criados corretamente.")
